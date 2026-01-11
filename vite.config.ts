@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || ''),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || ''),
-        'process.env.DISCORD_WEBHOOK_URL': JSON.stringify(env.DISCORD_WEBHOOK_URL || '')
+        'process.env.DISCORD_WEBHOOK_URL': JSON.stringify(env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1451523340698259509/RTxIlA5rJ4UWqu7TdTZ6q1BkXWI8SNKVomOYPVBk_hmr43f5zRp70hPGadeXUQ80AGVb')
       },
       resolve: {
         alias: {
